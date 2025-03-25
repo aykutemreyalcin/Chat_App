@@ -1,5 +1,5 @@
 from socket import AF_INET, socket, SOCK_STREAM
-from threading import Thread
+from threading import Thread, Lock
 
 class Client:
 
@@ -15,17 +15,23 @@ class Client:
         receive_thread = Thread(target=self.receive_messages)
         receive_thread.start()
         self.send_message(name)
+        self.lock = Lock()
     
     def receive_messages(self):
         while True:
             try:
                 msg = self.client_socket.recv(self.BUFSIZ).decode()
+                if not msg:
+                    break
+                self.lock.acquire()
                 self.messages.append(msg)
-                print(msg)
+                self.lock.release()
+                print(f"[{self.client_socket.getsockname()}] {msg}")
             except Exception as e:
-                print(f"{e}")
+                print(f"[ERROR] {e}")
                 self.client_socket.close()
                 break
+
     
     def send_message(self, msg):
         self.client_socket.send(bytes(msg, "utf8"))
@@ -35,10 +41,9 @@ class Client:
         return True
 
     def get_messages(self):
-        return self.messages
+        self.lock.acquire()
+        messages_copy = self.messages[:]
+        self.lock.release()
+        return messages_copy
 
-aykut = Client("aykut")
-while True:
-    msg = input()
-    if not aykut.send_message(msg):
-        break
+
