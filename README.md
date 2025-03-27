@@ -29,11 +29,6 @@ No external dependencies are required.
 python server.py
 ```
 
-You should see:
-```
-[STARTED] Waiting for connections...
-```
-
 ### Running Clients
 
 Each client can be launched in a separate terminal or programmatically as in `test.py`:
